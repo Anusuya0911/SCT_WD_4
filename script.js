@@ -1,76 +1,42 @@
-document.addEventListener("DOMContentLoaded", () => {
-    loadTasks();
-});
+const taskInput = document.getElementById("taskInput");
+const taskDate = document.getElementById("taskDate");
+const addTaskButton = document.getElementById("addTask");
+const taskList = document.getElementById("taskList");
+
+addTaskButton.addEventListener("click", addTask);
 
 function addTask() {
-    const taskText = document.getElementById("task").value;
-    const taskTime = document.getElementById("task-time").value;
-    if (taskText.trim() === "") return alert("Task cannot be empty!");
+    const taskText = taskInput.value.trim();
+    const taskTime = taskDate.value;
 
-    const task = {
-        text: taskText,
-        time: taskTime,
-        completed: false
-    };
+    if (taskText === "") return alert("Please enter a task!");
 
-    saveTask(task);
-    renderTasks();
-    document.getElementById("task").value = "";
-    document.getElementById("task-time").value = "";
+    const taskItem = document.createElement("li");
+    taskItem.innerHTML = `
+        <span class="task-text">${taskText} <br><small>${taskTime}</small></span>
+        <div class="actions">
+            <button onclick="completeTask(this)">✔</button>
+            <button onclick="editTask(this)">✏</button>
+            <button onclick="deleteTask(this)">❌</button>
+        </div>
+    `;
+
+    taskList.appendChild(taskItem);
+    taskInput.value = "";
+    taskDate.value = "";
 }
 
-function saveTask(task) {
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    tasks.push(task);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+function completeTask(button) {
+    const taskText = button.parentElement.previousElementSibling;
+    taskText.classList.toggle("completed");
 }
 
-function loadTasks() {
-    renderTasks();
+function editTask(button) {
+    const taskText = button.parentElement.previousElementSibling;
+    const newText = prompt("Edit your task:", taskText.textContent.split("\n")[0]);
+    if (newText) taskText.innerHTML = `${newText} <br><small>${taskText.innerHTML.split("<br>")[1]}</small>`;
 }
 
-function renderTasks() {
-    const taskList = document.getElementById("task-list");
-    taskList.innerHTML = "";
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-    tasks.forEach((task, index) => {
-        const listItem = document.createElement("li");
-
-        listItem.innerHTML = `
-            <span class="${task.completed ? 'completed' : ''}">
-                ${task.text} - ${task.time ? `Due: ${new Date(task.time).toLocaleString()}` : ""}
-            </span>
-            <div class="actions">
-                <button onclick="toggleComplete(${index})">✔</button>
-                <button onclick="editTask(${index})">✏</button>
-                <button onclick="deleteTask(${index})">❌</button>
-            </div>
-        `;
-        taskList.appendChild(listItem);
-    });
-}
-
-function toggleComplete(index) {
-    let tasks = JSON.parse(localStorage.getItem("tasks"));
-    tasks[index].completed = !tasks[index].completed;
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    renderTasks();
-}
-
-function editTask(index) {
-    let tasks = JSON.parse(localStorage.getItem("tasks"));
-    const newTask = prompt("Edit Task:", tasks[index].text);
-    if (newTask !== null) {
-        tasks[index].text = newTask;
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-        renderTasks();
-    }
-}
-
-function deleteTask(index) {
-    let tasks = JSON.parse(localStorage.getItem("tasks"));
-    tasks.splice(index, 1);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    renderTasks();
+function deleteTask(button) {
+    button.parentElement.parentElement.remove();
 }
